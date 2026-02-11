@@ -29,7 +29,7 @@ export default function Home() {
   if (loading) return (
     <div className="flex flex-col items-center justify-center h-64">
       <Activity className="w-12 h-12 text-rose-950 animate-pulse mb-4" />
-      <p className="text-stone-500 font-serif italic text-lg">Fetching live deals...</p>
+      <p className="text-stone-500 font-medium font-serif italic text-lg">Fetching live deals...</p>
     </div>
   );
 
@@ -38,7 +38,7 @@ export default function Home() {
       <div className="flex overflow-x-auto no-scrollbar space-x-3 pb-6 mb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
         {categories.map((cat) => (
           <button key={cat.name} onClick={() => setActiveCategory(cat.name)}
-            className={`flex flex-col items-center justify-center min-w-[90px] h-24 rounded-2xl transition-all shadow-sm border ${activeCategory === cat.name ? 'bg-amber-400 text-rose-950 font-bold shadow-lg scale-105' : 'bg-white text-stone-500 hover:bg-stone-50'}`}>
+            className={`flex flex-col items-center justify-center min-w-[90px] h-24 rounded-2xl transition-all duration-300 shadow-sm border ${activeCategory === cat.name ? 'bg-gradient-to-br from-amber-400 to-amber-500 text-rose-950 font-bold border-amber-300 shadow-amber-400/30 scale-105 shadow-lg' : 'bg-white text-stone-500 font-medium border-stone-100 hover:bg-stone-50'}`}>
             {cat.icon}
             <span className="text-xs uppercase tracking-wider mt-1">{cat.name}</span>
           </button>
@@ -46,20 +46,29 @@ export default function Home() {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
         {filteredStores.map(store => (
-          <Link to={`/store/${store.id}`} key={store.id} className="group bg-white rounded-3xl overflow-hidden shadow-lg border hover:border-amber-400 hover:shadow-2xl transition-all block">
+          <Link to={`/store/${store.id}`} key={store.id} className="group relative bg-white rounded-3xl overflow-hidden shadow-xl shadow-rose-950/5 border border-stone-100 hover:border-amber-400 hover:shadow-2xl hover:shadow-amber-400/20 transition-all duration-500 transform hover:-translate-y-2 block">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-rose-500 to-amber-400 z-20"></div>
             <div className="relative h-56 overflow-hidden">
-              <img src={store.photo} alt={store.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
-              <div className="absolute top-4 left-4 z-20"><span className="px-3 py-1.5 text-xs font-bold uppercase tracking-widest bg-white/95 text-rose-950 rounded-full shadow-lg">{store.type}</span></div>
+              <img src={store.photo} alt={store.name} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 relative z-10" />
+              <div className="absolute top-4 left-4 z-20">
+                <span className="px-3 py-2 text-xs font-bold uppercase tracking-widest bg-white/95 backdrop-blur-sm text-rose-950 rounded-md shadow-lg border border-white/20 inline-flex items-center">
+                  {store.type}
+                </span>
+              </div>
             </div>
-            <div className="p-6">
-              <h3 className="text-2xl font-bold font-serif text-slate-900 mb-5 group-hover:text-rose-950">{store.name}</h3>
-              <div className="bg-amber-300 p-4 rounded-xl border border-amber-200 shadow-md">
-                <p className="text-rose-950 font-black text-lg">{store.mainOffer}</p>
+            <div className="p-6 relative">
+              <h3 className="text-2xl font-bold font-serif text-slate-900 mb-1 tracking-tight group-hover:text-rose-950 transition-colors">{store.name}</h3>
+              <div className="mt-5 relative">
+                <div className="bg-gradient-to-r from-amber-300 to-amber-400 p-4 rounded-xl border border-amber-200 shadow-[0_4px_0_0_rgba(217,119,6,1)] relative overflow-hidden group-hover:shadow-[0_2px_0_0_rgba(217,119,6,1)] group-hover:translate-y-[2px] transition-all">
+                  <div className="absolute top-0 -inset-full h-full w-1/2 z-5 block transform -skew-x-12 bg-gradient-to-r from-transparent to-white opacity-40 group-hover:animate-[glint_1.5s_ease-in-out]"></div>
+                  <p className="text-rose-950 font-black text-lg leading-tight relative z-10 tabular-nums">{store.mainOffer}</p>
+                </div>
               </div>
             </div>
           </Link>
         ))}
       </div>
+      <style>{`@keyframes glint { 100% { left: 200%; } }`}</style>
     </div>
   );
 }
