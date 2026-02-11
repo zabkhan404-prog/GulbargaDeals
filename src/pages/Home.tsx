@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Store, StoreType, getStores, trackPageView } from '../data';
-import { Utensils, ShoppingBag, ShoppingCart, Info, Activity, Pill, Scissors, Smartphone, LayoutGrid, Search } from 'lucide-react';
+import { Utensils, ShoppingBag, ShoppingCart, Info, Activity, Pill, Scissors, Smartphone, LayoutGrid, Search, Sparkles } from 'lucide-react';
 
 const categories: { name: StoreType | 'All', icon: React.ReactNode }[] = [
   { name: 'All', icon: <LayoutGrid className="w-5 h-5 mb-1" /> },
@@ -94,16 +94,30 @@ export default function Home() {
         ))}
       </div>
 
-      {/* Empty State */}
+      {/* SMART Empty State */}
       {filteredStores.length === 0 && !loading && (
-        <div className="text-center py-20 bg-white rounded-3xl border border-dashed border-stone-200 shadow-sm mt-8">
-          <Search className="w-12 h-12 text-stone-300 mx-auto mb-4" />
-          <p className="text-stone-400 font-medium font-serif italic text-xl">No deals found.</p>
-          <p className="text-stone-400 text-sm mt-2">Try searching for something else!</p>
+        <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-stone-200 shadow-sm mt-8 px-6">
+          {searchQuery ? (
+            <>
+              <Search className="w-12 h-12 text-stone-300 mx-auto mb-4" />
+              <p className="text-stone-500 font-medium font-serif italic text-xl">No exact matches found.</p>
+              <p className="text-stone-400 text-sm mt-2">Try adjusting your search terms to find great deals.</p>
+            </>
+          ) : (
+            <>
+              <div className="w-16 h-16 bg-amber-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Sparkles className="w-8 h-8 text-amber-500" />
+              </div>
+              <p className="text-rose-950 font-bold font-serif text-2xl mb-2">Exciting deals coming soon!</p>
+              <p className="text-stone-500 text-sm leading-relaxed max-w-sm mx-auto">
+                We are currently partnering with top local businesses in the <span className="font-bold text-amber-600">{activeCategory}</span> category. Check back shortly!
+              </p>
+            </>
+          )}
         </div>
       )}
 
       <style>{`@keyframes glint { 100% { left: 200%; } }`}</style>
     </div>
   );
-}          
+}
