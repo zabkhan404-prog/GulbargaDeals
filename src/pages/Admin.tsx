@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Store, StoreType, getStores, saveStores, deleteStore, getAnalytics, Analytics, getTagline, saveTagline, MenuItem, Offer } from '../data';
-import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { Lock, Plus, Edit2, Trash2, LayoutDashboard, Copy, Image as ImageIcon, AlertTriangle } from 'lucide-react';
+import { Store, StoreType, getStores, saveStores, deleteStore, getAnalytics, Analytics, getTagline, saveTagline } from '../data';
+import { LayoutDashboard, Lock, Plus, Edit2, Trash2, ArrowUp, ArrowDown, Image as ImageIcon, AlertTriangle } from 'lucide-react';
 
 export default function Admin() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -37,10 +36,33 @@ export default function Admin() {
   const handleSave = async () => {
     if(!editingStore) return;
     try {
-      await saveStores([editingStore]);
-      setStores(stores.find(s=>s.id===editingStore.id) ? stores.map(s=>s.id===editingStore.id?editingStore:s) : [...stores, editingStore]);
+      // Give new stores an order number at the bottom of the list
+      const storeToSave = { ...editingStore, order: editingStore.order ?? stores.length };
+      const isExisting = stores.find(s => s.id === storeToSave.id);
+      const updatedList = isExisting 
+        ? stores.map(s => s.id === storeToSave.id ? storeToSave : s)
+        : [...stores, storeToSave];
+      
+      await saveStores([storeToSave]);
+      setStores(updatedList.sort((a, b) => (a.order ?? 999) - (b.order ?? 999)));
       setEditingStore(null);
     } catch(e) { alert("Database locked! Update Firebase rules."); }
+  };
+
+  const moveStore = async (idx: number, direction: number) => {
+    const newStores = [...stores];
+    const targetIdx = idx + direction;
+    if (targetIdx < 0 || targetIdx >= newStores.length) return;
+
+    // Swap their places
+    const temp = newStores[idx];
+    newStores[idx] = newStores[targetIdx];
+    newStores[targetIdx] = temp;
+
+    // Re-assign the rank numbers
+    const updatedStores = newStores.map((s, i) => ({ ...s, order: i }));
+    setStores(updatedStores);
+    await saveStores(updatedStores); // Save the new order to Firebase!
   };
 
   if (!isAuthenticated) return (
@@ -58,6 +80,7 @@ export default function Admin() {
     <div className="bg-stone-100 min-h-screen p-4 pb-20">
       <div className="max-w-6xl mx-auto space-y-8">
         {dbLockedError && <div className="bg-red-100 border-l-4 border-red-500 p-4 rounded-xl shadow-sm text-red-800 font-bold">Firebase Database Locked! Change Rules to allow read/write.</div>}
+        
         <div className="bg-rose-950 p-6 rounded-3xl text-white shadow-xl flex justify-between items-center">
           <div className="flex items-center"><LayoutDashboard className="w-8 h-8 text-amber-400 mr-4" /><h1 className="text-3xl font-serif font-bold">Admin Portal</h1></div>
           <div className="bg-rose-900/50 px-4 py-2 rounded-xl text-amber-400 font-bold">Views: {analytics.views}</div>
@@ -70,26 +93,43 @@ export default function Admin() {
 
         <div className="bg-white p-6 rounded-3xl shadow-lg">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold font-serif">Manage Deals</h2>
+            <h2 className="text-xl font-bold font-serif">Manage & Rank Deals</h2>
             <button onClick={() => setEditingStore({ id: Date.now().toString(), type: 'Restaurants', name: '', photo: '', mainOffer: '', address: '', contact: '', menu: [], offers: [] })} className="bg-amber-400 text-slate-900 px-4 py-2 rounded-xl font-bold flex items-center"><Plus className="w-5 h-5 mr-1" /> Add Deal</button>
           </div>
+          
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {stores.map(store => (
-              <div key={store.id} className="border border-stone-200 rounded-2xl p-4 bg-stone-50 hover:border-amber-300 transition-all flex flex-col relative">
-                <div className="absolute top-4 right-4 bg-rose-100 text-rose-950 text-xs font-bold px-2 py-1 rounded-lg">{analytics.clicks[store.id] || 0} Clicks</div>
-                <img src={store.photo} className="w-full h-32 object-cover rounded-xl mb-4" />
+            {stores.map((store, idx) => (
+              <div key={store.id} className="border border-stone-200 rounded-2xl p-4 bg-stone-50 hover:border-amber-300 transition-all flex flex-col relative shadow-sm">
+                
+                {/* RANK BADGE */}
+                <div className="absolute top-4 left-4 bg-white text-slate-900 text-sm font-black px-3 py-1 rounded-lg shadow-md border border-stone-200 z-10">
+                  #{idx + 1}
+                </div>
+                
+                <div className="absolute top-4 right-4 bg-rose-100 text-rose-950 text-xs font-bold px-2 py-1 rounded-lg z-10 border border-rose-200">{analytics.clicks[store.id] || 0} Clicks</div>
+                
+                <img src={store.photo} className="w-full h-32 object-cover rounded-xl mb-4 opacity-90" />
                 <span className="text-xs font-bold text-amber-600 uppercase mb-1">{store.type}</span>
                 <h3 className="font-bold text-lg mb-1">{store.name}</h3>
                 <p className="text-rose-950 font-black mb-4 bg-amber-100 inline-block px-2 py-1 rounded-md text-sm">{store.mainOffer}</p>
-                <div className="mt-auto flex gap-2 border-t pt-4">
-                  <button onClick={() => setEditingStore(store)} className="flex-1 bg-white border py-1.5 rounded-lg flex justify-center items-center font-bold text-sm"><Edit2 className="w-4 h-4 mr-1"/> Edit</button>
-                  <button onClick={() => { if(window.confirm('Delete?')) { deleteStore(store.id); setStores(stores.filter(s => s.id !== store.id)); } }} className="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg border flex justify-center items-center"><Trash2 className="w-4 h-4" /></button>
+                
+                {/* UP/DOWN AND EDIT/DELETE BUTTONS */}
+                <div className="mt-auto pt-4 border-t border-stone-200 space-y-2">
+                  <div className="flex gap-2">
+                    <button onClick={() => moveStore(idx, -1)} disabled={idx === 0} className="flex-1 bg-white border border-stone-200 text-slate-800 py-2 rounded-lg flex justify-center items-center shadow-sm disabled:opacity-30 disabled:bg-stone-100"><ArrowUp className="w-4 h-4 mr-1"/> Move Up</button>
+                    <button onClick={() => moveStore(idx, 1)} disabled={idx === stores.length - 1} className="flex-1 bg-white border border-stone-200 text-slate-800 py-2 rounded-lg flex justify-center items-center shadow-sm disabled:opacity-30 disabled:bg-stone-100"><ArrowDown className="w-4 h-4 mr-1"/> Move Down</button>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => setEditingStore(store)} className="flex-1 bg-amber-100 text-amber-800 py-1.5 rounded-lg flex justify-center items-center font-bold text-sm border border-amber-200"><Edit2 className="w-4 h-4 mr-1"/> Edit</button>
+                    <button onClick={() => { if(window.confirm('Delete?')) { deleteStore(store.id); setStores(stores.filter(s => s.id !== store.id)); } }} className="flex-1 bg-red-50 text-red-600 py-1.5 rounded-lg border border-red-100 flex justify-center items-center text-sm font-bold"><Trash2 className="w-4 h-4 mr-1"/> Delete</button>
+                  </div>
                 </div>
               </div>
             ))}
           </div>
         </div>
 
+        {/* Edit Modal... */}
         {editingStore && (
           <div className="fixed inset-0 bg-stone-900/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
             <div className="bg-white rounded-3xl w-full max-w-2xl p-6 my-8 shadow-2xl">
@@ -146,4 +186,5 @@ export default function Admin() {
       </div>
     </div>
   );
-                  }          
+                      }  
+          
