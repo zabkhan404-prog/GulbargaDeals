@@ -11,6 +11,7 @@ export interface Store {
   id: string; type: StoreType; name: string; photo: string;
   mainOffer: string; address: string; contact: string;
   menu?: MenuItem[]; offers?: Offer[];
+  order?: number; // Added to remember exactly where you put the store!
 }
 
 export interface Analytics { views: number; clicks: Record<string, number>; }
@@ -39,7 +40,8 @@ export const getStores = async (): Promise<Store[]> => {
     const snap = await getDocs(collection(db, 'stores'));
     const stores: Store[] = [];
     snap.forEach((d) => stores.push({ id: d.id, ...d.data() } as Store));
-    return stores;
+    // Automatically sort the stores perfectly based on your Admin ranking!
+    return stores.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
   } catch (e: any) {
     if (e.code === 'permission-denied') alert("Database Access Denied! Set Firestore Rules to true.");
     throw e;
