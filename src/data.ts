@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+  import { useState, useEffect } from 'react';
 import { db } from './firebase';
 import { collection, doc, getDoc, getDocs, setDoc, updateDoc, increment, deleteDoc } from 'firebase/firestore';
 
@@ -11,6 +11,7 @@ export interface Store {
   id: string; type: StoreType; name: string; photo: string;
   mainOffer: string; address: string; contact: string;
   menu?: MenuItem[]; offers?: Offer[];
+  menuImages?: string[]; // NEW: Array of menu image URLs (base64 or URLs)
   order?: number; // Remembers your custom rank!
 }
 
