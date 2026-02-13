@@ -1,4 +1,4 @@
-  import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { db } from './firebase';
 import { collection, doc, getDoc, getDocs, setDoc, updateDoc, increment, deleteDoc } from 'firebase/firestore';
 
@@ -74,3 +74,4 @@ export const getAnalytics = async (): Promise<Analytics> => {
   } catch (e) { console.error(e); }
   return { views: 0, clicks: {} };
 };
+  
