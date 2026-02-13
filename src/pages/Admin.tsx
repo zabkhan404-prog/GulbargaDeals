@@ -94,7 +94,7 @@ export default function Admin() {
         <div className="bg-white p-6 rounded-3xl shadow-lg">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-bold font-serif">Manage & Rank Deals</h2>
-            <button onClick={() => setEditingStore({ id: Date.now().toString(), type: 'Restaurants', name: '', photo: '', mainOffer: '', address: '', contact: '', menu: [], offers: [] })} className="bg-amber-400 text-slate-900 px-4 py-2 rounded-xl font-bold flex items-center"><Plus className="w-5 h-5 mr-1" /> Add Deal</button>
+            <button onClick={() => setEditingStore({ id: Date.now().toString(), type: 'Restaurants', name: '', photo: '', mainOffer: '', address: '', contact: '', menu: [], offers: [], menuImages: [] })} className="bg-amber-400 text-slate-900 px-4 py-2 rounded-xl font-bold flex items-center"><Plus className="w-5 h-5 mr-1" /> Add Deal</button>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -132,7 +132,7 @@ export default function Admin() {
         {/* Edit Modal... */}
         {editingStore && (
           <div className="fixed inset-0 bg-stone-900/80 backdrop-blur-sm flex items-center justify-center p-4 z-50 overflow-y-auto">
-            <div className="bg-white rounded-3xl w-full max-w-2xl p-6 my-8 shadow-2xl">
+            <div className="bg-white rounded-3xl w-full max-w-2xl p-6 my-8 shadow-2xl max-h-[90vh] overflow-y-auto">
               <h2 className="text-2xl font-serif font-bold mb-6">Edit Deal</h2>
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
@@ -142,7 +142,7 @@ export default function Admin() {
                   </select>
                 </div>
                 <div className="border-2 border-dashed border-stone-200 rounded-xl p-4 flex gap-4 items-center">
-                  <label className="cursor-pointer bg-amber-400 text-rose-950 px-4 py-2 rounded-lg font-bold flex"><ImageIcon className="w-5 h-5 mr-2" /> Upload Image<input type="file" accept="image/*" className="hidden" onChange={async (e) => { if (e.target.files?.[0]) setEditingStore({...editingStore, photo: await compressImage(e.target.files[0])}); }} /></label>
+                  <label className="cursor-pointer bg-amber-400 text-rose-950 px-4 py-2 rounded-lg font-bold flex"><ImageIcon className="w-5 h-5 mr-2" /> Upload Cover Photo<input type="file" accept="image/*" className="hidden" onChange={async (e) => { if (e.target.files?.[0]) setEditingStore({...editingStore, photo: await compressImage(e.target.files[0])}); }} /></label>
                   {editingStore.photo && <img src={editingStore.photo} className="h-12 w-12 object-cover rounded" />}
                 </div>
                 <input type="text" placeholder="Main Highlight Offer (e.g. 50% OFF)" value={editingStore.mainOffer} onChange={e => setEditingStore({...editingStore, mainOffer: e.target.value})} className="w-full border-2 border-amber-200 bg-amber-50 rounded-xl px-4 py-2 font-bold text-rose-950" />
@@ -151,8 +151,62 @@ export default function Admin() {
                   <input type="text" placeholder="Contact" value={editingStore.contact} onChange={e => setEditingStore({...editingStore, contact: e.target.value})} className="border rounded-xl px-4 py-2" />
                 </div>
                 
+                {/* NEW: MENU IMAGES SECTION */}
+                <div className="bg-blue-50 p-4 rounded-xl border-2 border-blue-200 mt-4">
+                  <h3 className="font-bold text-slate-900 mb-3 flex items-center"><ImageIcon className="w-5 h-5 mr-2 text-blue-600" />Menu Images (Upload menu photos)</h3>
+                  
+                  <div className="border-2 border-dashed border-blue-300 rounded-xl p-4 mb-3">
+                    <label className="cursor-pointer bg-blue-500 text-white px-4 py-2 rounded-lg font-bold flex items-center justify-center hover:bg-blue-600">
+                      <ImageIcon className="w-5 h-5 mr-2" /> Upload Menu Image
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        multiple
+                        className="hidden" 
+                        onChange={async (e) => { 
+                          if (e.target.files) {
+                            const newImages: string[] = [];
+                            for (let i = 0; i < e.target.files.length; i++) {
+                              const compressed = await compressImage(e.target.files[i]);
+                              newImages.push(compressed);
+                            }
+                            setEditingStore({
+                              ...editingStore, 
+                              menuImages: [...(editingStore.menuImages || []), ...newImages]
+                            });
+                          }
+                        }} 
+                      />
+                    </label>
+                    <p className="text-xs text-gray-600 mt-2 text-center">You can upload multiple menu images at once</p>
+                  </div>
+                  
+                  {/* Display uploaded menu images */}
+                  {editingStore.menuImages && editingStore.menuImages.length > 0 && (
+                    <div className="grid grid-cols-2 gap-3">
+                      {editingStore.menuImages.map((img, idx) => (
+                        <div key={idx} className="relative border-2 border-blue-200 rounded-lg overflow-hidden">
+                          <img src={img} className="w-full h-32 object-cover" alt={`Menu ${idx + 1}`} />
+                          <button 
+                            onClick={() => {
+                              const newImages = editingStore.menuImages!.filter((_, i) => i !== idx);
+                              setEditingStore({...editingStore, menuImages: newImages});
+                            }}
+                            className="absolute top-1 right-1 bg-red-500 text-white px-2 py-1 rounded text-xs font-bold hover:bg-red-600"
+                          >
+                            Delete
+                          </button>
+                          <div className="absolute bottom-1 left-1 bg-blue-500 text-white px-2 py-0.5 rounded text-xs font-bold">
+                            Menu {idx + 1}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                
                 <div className="bg-stone-50 p-4 rounded-xl border border-stone-200 mt-4">
-                  <h3 className="font-bold text-slate-900 mb-2">Menu Items</h3>
+                  <h3 className="font-bold text-slate-900 mb-2">Menu Items (Optional - or use images above)</h3>
                   {editingStore.menu?.map((item, idx) => (
                     <div key={idx} className="flex gap-2 mb-2">
                       <input type="text" placeholder="Item Name" value={item.name} onChange={e => { const newMenu = [...(editingStore.menu||[])]; newMenu[idx].name = e.target.value; setEditingStore({...editingStore, menu: newMenu}); }} className="flex-grow border rounded-lg px-3 py-1 text-sm" />
@@ -186,5 +240,5 @@ export default function Admin() {
       </div>
     </div>
   );
-                      }  
-          
+        }
+                        
