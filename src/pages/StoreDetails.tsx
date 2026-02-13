@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { Store, getStores, trackStoreClick } from '../data';
-import { ArrowLeft, MapPin, Phone, Flame, Utensils, Info } from 'lucide-react';
+import { ArrowLeft, MapPin, Phone, Flame, Utensils, Info, Image as ImageIcon } from 'lucide-react';
 
 export default function StoreDetails() {
   const { id } = useParams();
@@ -40,6 +40,28 @@ export default function StoreDetails() {
           </div>
         </div>
 
+        {/* NEW: MENU IMAGES SECTION */}
+        {store.menuImages && store.menuImages.length > 0 && (
+          <div className="bg-white rounded-3xl p-8 shadow-xl shadow-stone-200/50 border border-stone-100 mb-8">
+            <h3 className="text-2xl font-serif font-bold text-slate-900 mb-8 flex items-center">
+              <ImageIcon className="w-6 h-6 text-amber-500 mr-3" /> Menu
+            </h3>
+            <div className="space-y-4">
+              {store.menuImages.map((img, idx) => (
+                <div key={idx} className="border-2 border-stone-200 rounded-xl overflow-hidden hover:border-amber-300 transition-all">
+                  <img 
+                    src={img} 
+                    alt={`Menu page ${idx + 1}`} 
+                    className="w-full h-auto object-contain cursor-pointer hover:scale-105 transition-transform"
+                    onClick={() => window.open(img, '_blank')}
+                  />
+                </div>
+              ))}
+            </div>
+            <p className="text-xs text-stone-500 text-center mt-4 italic">Click on menu images to view full size</p>
+          </div>
+        )}
+
         {store.menu && store.menu.length > 0 && (
           <div className="bg-white rounded-3xl p-8 shadow-xl shadow-stone-200/50 border border-stone-100 mb-8">
             <h3 className="text-2xl font-serif font-bold text-slate-900 mb-8 flex items-center"><Utensils className="w-6 h-6 text-amber-500 mr-3" /> Exclusive Menu</h3>
@@ -70,4 +92,4 @@ export default function StoreDetails() {
       </div>
     </div>
   );
-}
+      }
